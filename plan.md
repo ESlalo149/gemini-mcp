@@ -9,7 +9,7 @@ Documento vivo para llevar el proyecto desde una prueba funcional hasta un puent
 - `ask_gemini`, `new_chat`, `get_title` y `read_thread` respondieron correctamente.
 - La prueba de memoria entre dos mensajes fue exitosa.
 - Repositorio privado: `https://github.com/ESlalo149/gemini-mcp`.
-- GitNexus actualizado: `113 nodes`, `153 edges`, `8 clusters`, `4 flows`.
+- GitNexus actualizado: `144 nodes`, `179 edges`, `7 clusters`, `5 flows`.
 - Primer commit publicado: `19c79aa`.
 
 ## Arquitectura conocida
@@ -168,7 +168,7 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 
 - [x] Serializar acciones que usan la misma pestaña para evitar dos prompts simultáneos sobre el mismo DOM.
 - [x] Mantener una sola conexión WebSocket activa y limpiar correctamente sockets sustituidos.
-- [ ] Validar mensajes WebSocket entrantes antes de resolver requests pendientes.
+- [x] Validar mensajes WebSocket entrantes antes de resolver requests pendientes.
 - [ ] Conservar timeouts y errores diferenciados para servidor no escuchando, extensión desconectada, pestaña ausente y DOM incompatible.
 - [x] Mantener el heartbeat de 20 segundos, respaldado por `chrome.alarms` para despertar el Service Worker y reconectar después de una suspensión.
 - [x] Declarar `minimum_chrome_version: 116` para el comportamiento de WebSockets de service workers documentado por Chrome.
@@ -186,12 +186,12 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 - [x] Sustituir el `npm test` placeholder por validaciones útiles.
 - [x] Añadir `npm run check` para validar los tres archivos JavaScript.
 - [x] Añadir `npm run start` para iniciar el servidor MCP.
-- [ ] Crear un smoke test con cliente MCP y una extensión WebSocket simulada.
+- [x] Crear un smoke test con extensión WebSocket simulada.
 - [ ] Probar `bridge_status` sin Chrome.
-- [ ] Probar round-trip real con `new_chat`, `ask_gemini`, `read_thread` y memoria.
+- [x] Probar round-trip real con `new_chat`, `ask_gemini`, `read_thread` y memoria.
 - [x] No probar upload: la funcionalidad fue retirada por decisión de seguridad.
-- [ ] Probar dos solicitudes concurrentes y confirmar que no se mezclen.
-- [ ] Probar recarga de extensión, recarga de pestaña y reconexión del WebSocket.
+- [x] Probar dos solicitudes concurrentes y confirmar que no se mezclen.
+- [x] Probar recarga de extensión, recarga de pestaña y reconexión del WebSocket.
 - [ ] Probar suspensión/reinicio del service worker.
 - [x] Ejecutar `npx gitnexus analyze` después de cambios relevantes.
 - [x] Ejecutar `gitnexus_detect_changes()` antes de cualquier commit (si se solicita).

@@ -74,14 +74,14 @@ npm install
 | Tool | Parámetros | Descripción | Estado |
 |---|---|---|---|
 | `ask_gemini` | `prompt` | Envía una consulta y espera la respuesta | ✅ |
-| `read_thread` | — | Lee la conversación actual (turnos visibles) | ⚠️ solo turnos de modelo |
+| `read_thread` | — | Lee la conversación actual (turnos visibles) | ✅ |
 | `new_chat` | — | Inicia una conversación nueva | ✅ |
 | `get_title` | — | Devuelve el título de la conversación | ✅ |
-| `send_file` | — | No disponible: subida local fuera de alcance | No implementado |
+| `send_file` | — | No disponible: subida local fuera de alcance | Retirado |
 | `bridge_status` | — | Estado del puente: `listening`, `extensionConnected`, `bindRetries`, `lastBindError` | ✅ |
 | `debug_dom` | — | Metadatos sanitizados del DOM para diagnóstico | ✅ |
 
-> ⚠️ **Nota `send_file`**: el nombre del parámetro que el **servidor** anuncia es `path` (verificado con un cliente MCP real). opencode puede exponer la tool como `filePath` en su esquema de la sesión. Llamar con `filePath` produce un error de validación `-32602`; llamar con `path` sí llega al servidor. (Bug n.º 3)
+> `send_file` fue retirado: el puente no lee rutas locales ni transmite archivos a Gemini.
 
 ---
 
@@ -153,9 +153,8 @@ Como ejemplo de uso agéntico, se validó un ciclo completo "detective + desplie
 
 ## Pendientes / roadmap
 
-1. **`waitForResponse`** — combinar bloque nuevo, estabilidad y estado de controles.
-2. **`read_thread`** — validar turnos de usuario y modelo con una conversación real.
-3. Robustez del puente, concurrencia y pruebas automatizadas.
+1. Pruebas manuales de recarga de extensión, pestaña y Service Worker.
+2. Mantener selectores y diagnóstico cuando Gemini cambie su DOM.
 
 ---
 

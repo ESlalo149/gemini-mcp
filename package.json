@@ -6,7 +6,8 @@
   "scripts": {
     "check": "node --check server.js && node --check extension/background.js && node --check extension/content.js",
     "start": "node server.js",
-    "test": "npm run check"
+    "smoke": "node scripts/smoke.js",
+    "test": "npm run check && npm run smoke"
   },
   "keywords": [],
   "author": "",
