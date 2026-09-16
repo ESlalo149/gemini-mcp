@@ -106,14 +106,14 @@ function requestExtension(action, payload = {}) {
                 reject(new Error(`El puente no está escuchando en 127.0.0.1:${WSS_PORT}${lastBindError ? ` (último error: ${lastBindError})` : ""}.`));
                 return;
             }
-            reject(new Error("La extensión de Chrome no está conectada."));
+            reject(new Error("La extensión de Chrome no está conectada (extensión desconectada)."));
             return;
         }
 
         const requestId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         const timer = setTimeout(() => {
             pendingRequests.delete(requestId);
-            reject(new Error("Tiempo de espera agotado esperando a Gemini."));
+            reject(new Error(`Tiempo de espera agotado esperando a Gemini (DOM incompatible o generación detenida; acción: ${action}).`));
         }, REQUEST_TIMEOUT);
 
         pendingRequests.set(requestId, {

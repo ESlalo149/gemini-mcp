@@ -98,7 +98,7 @@ function waitForResponse(previousResponses = new Set()) {
 
             if (lastResponse && (newResponses.length > 0 || previousResponses.size === 0)) {
                 const currentText = lastResponse.innerText.trim();
-                if (/something went wrong|algo salió mal|sign in|inicia sesión|quota|cuota|blocked|bloqueado/i.test(currentText)) {
+                if (/something went wrong|algo salió mal|network|red|sign in|inicia sesión|quota|cuota|blocked|bloqueado|safety|seguridad|captcha/i.test(currentText)) {
                     clearInterval(interval);
                     resolve(`Error de Gemini: ${currentText}`);
                     return;
@@ -123,7 +123,7 @@ function waitForResponse(previousResponses = new Set()) {
 
             if (totalMs >= 120000) {
                 clearInterval(interval);
-                resolve(lastText.length > 0 ? lastText : "Error: Tiempo de espera agotado esperando la respuesta.");
+                resolve(lastText.length > 0 ? lastText : "Error de Gemini: tiempo de espera agotado esperando la respuesta.");
             }
         }, 500);
     });
@@ -131,6 +131,8 @@ function waitForResponse(previousResponses = new Set()) {
 
 function readThread() {
     const entries = [];
+    const lastResponse = getResponseNodes().at(-1);
+    if (lastResponse) lastResponse.scrollIntoView({ block: "end", behavior: "auto" });
     const add = (node, role, text) => {
         const value = (text || "").trim();
         const duplicate = entries.some((entry) => {

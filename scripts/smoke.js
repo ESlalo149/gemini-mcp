@@ -23,24 +23,24 @@ const connect = () => {
         fail(error);
     });
     socket.on("open", onOpen);
-    socket.on("message", onMessage);
 };
 
 function onOpen() {
-    socket.once("message", (raw) => {
+    let phase = 0;
+    socket.on("message", (raw) => {
         const message = JSON.parse(raw.toString());
         if (message.type !== "pong") return fail(new Error("Heartbeat response invalid"));
+        if (phase++ === 0) {
+            socket.send(JSON.stringify({ id: 42, ok: "invalid" }));
+            socket.send(JSON.stringify({ type: "ping" }));
+            return;
+        }
         clearTimeout(timer);
         socket.close();
         server.kill();
         console.log("Smoke test passed");
     });
     socket.send(JSON.stringify({ type: "ping" }));
-}
-
-function onMessage(raw) {
-    const message = JSON.parse(raw.toString());
-    if (message.type !== "pong") return;
 }
 
 server.on("error", fail);

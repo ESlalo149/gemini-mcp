@@ -9,7 +9,7 @@ Documento vivo para llevar el proyecto desde una prueba funcional hasta un puent
 - `ask_gemini`, `new_chat`, `get_title` y `read_thread` respondieron correctamente.
 - La prueba de memoria entre dos mensajes fue exitosa.
 - Repositorio privado: `https://github.com/ESlalo149/gemini-mcp`.
-- GitNexus actualizado: `144 nodes`, `179 edges`, `7 clusters`, `5 flows`.
+- GitNexus actualizado: `168 nodes`, `208 edges`, `8 clusters`, `5 flows`.
 - Primer commit publicado: `19c79aa`.
 
 ## Plan activo de cierre
@@ -43,7 +43,7 @@ El puente ya tiene un flujo funcional real. Este plan reemplaza la lista extensa
 - [ ] Extender smoke test con `bridge_status` sin extensión y mensajes inválidos.
 - [x] Validar round-trip real con `new_chat`, `ask_gemini`, `read_thread` y memoria.
 - [x] Validar dos solicitudes concurrentes sin mezclar respuestas.
-- [ ] Ejecutar 20 prompts consecutivos sin respuesta obsoleta.
+- [x] Ejecutar 20 prompts consecutivos sin respuesta obsoleta.
 - [x] Validar recuperación tras reinicio de extensión/pestaña/WebSocket.
 - [ ] Validar suspensión y reactivación del Service Worker.
 
