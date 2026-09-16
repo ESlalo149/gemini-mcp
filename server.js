@@ -143,6 +143,65 @@ function describeResult(message) {
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
 }
 
+function structuredPrompt(prompt, schema, requestId) {
+    return [
+        "Responde en modo estructurado. Mantén cualquier explicación breve fuera del bloque.",
+        "Dentro de <bridge_payload> escribe únicamente JSON válido, sin markdown ni fences.",
+        `El JSON debe cumplir este schema descriptivo: ${JSON.stringify(schema || { type: "object" })}`,
+        `Usa exactamente este requestId: ${requestId}`,
+        "Formato obligatorio: <bridge_payload>{\"v\":1,\"requestId\":\"...\",\"status\":\"success\",\"mode\":\"json\",\"payload\":{...}}</bridge_payload>",
+        "Si no puedes completar la tarea, usa status=error y payload=null.",
+        "Solicitud:",
+        prompt,
+    ].join("\n");
+}
+
+function validatePayload(payload, schema) {
+    if (!schema || !schema.properties) return null;
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) return "payload debe ser un objeto.";
+    for (const field of schema.required || []) {
+        if (!(field in payload)) return `Falta el campo requerido: ${field}`;
+    }
+    for (const [field, definition] of Object.entries(schema.properties)) {
+        if (!(field in payload) || !definition?.type) continue;
+        const value = payload[field];
+        const valid = definition.type === "array" ? Array.isArray(value) :
+            definition.type === "object" ? value !== null && typeof value === "object" && !Array.isArray(value) :
+            typeof value === definition.type;
+        if (!valid) return `Tipo inválido para ${field}: se esperaba ${definition.type}.`;
+    }
+    return null;
+}
+
+function parseStructuredResponse(text, expectedRequestId, schema) {
+    const match = String(text || "").match(/<bridge_payload>\s*([\s\S]*?)\s*<\/bridge_payload>/i);
+    if (!match) {
+        return { v: 1, requestId: expectedRequestId, status: "partial", mode: "text", payload: { raw_text: String(text || "") }, error: { code: "MISSING_PAYLOAD", retryable: true } };
+    }
+    try {
+        const value = JSON.parse(match[1].replace(/^```json\s*|```$/gi, "").trim());
+        if (!value || value.v !== 1 || value.requestId !== expectedRequestId || !["success", "error", "partial"].includes(value.status) || !["json", "error"].includes(value.mode)) {
+            throw new Error("Envelope incompleto o incompatible.");
+        }
+        const payloadError = value.status === "success" ? validatePayload(value.payload, schema) : null;
+        if (payloadError) throw new Error(payloadError);
+        return value;
+    } catch (error) {
+        return { v: 1, requestId: expectedRequestId, status: "partial", mode: "text", payload: { raw_text: String(text || "") }, error: { code: "INVALID_PAYLOAD", message: error.message, retryable: true } };
+    }
+}
+
+function structuredError(requestId, code, message, retryable = true) {
+    return {
+        v: 1,
+        requestId,
+        status: "error",
+        mode: "error",
+        payload: null,
+        error: { code, message, retryable },
+    };
+}
+
 server.tool(
     "ask_gemini",
     "Envía una consulta a la pestaña de Gemini y devuelve la respuesta generada.",
@@ -154,6 +213,27 @@ server.tool(
             return describeResult(await requestExtension("ask", { prompt }));
         } catch (error) {
             return { content: [{ type: "text", text: `Error: ${error.message}` }] };
+        }
+    }
+);
+
+server.tool(
+    "ask_gemini_json",
+    "Envía una consulta estructurada a Gemini y devuelve un envelope JSON validado; degrada a texto si Gemini no produce un payload válido.",
+    {
+        prompt: z.string().describe("La solicitud para Gemini"),
+        schema: z.record(z.any()).optional().describe("Schema descriptivo esperado para payload"),
+    },
+    async ({ prompt, schema }) => {
+        const requestId = `json_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        try {
+            const message = await requestExtension("ask", { prompt: structuredPrompt(prompt, schema, requestId) });
+            if (!message || message.ok !== true) {
+                return { content: [{ type: "text", text: JSON.stringify(structuredError(requestId, "EXTENSION_ERROR", message?.error || "Sin respuesta de la extensión."), null, 2) }] };
+            }
+            return { content: [{ type: "text", text: JSON.stringify(parseStructuredResponse(message.data, requestId, schema), null, 2) }] };
+        } catch (error) {
+            return { content: [{ type: "text", text: JSON.stringify(structuredError(undefined, "BRIDGE_ERROR", error.message), null, 2) }] };
         }
     }
 );

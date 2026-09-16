@@ -126,6 +126,22 @@ get_title                → título del hilo
 | Tools `gemini-browser.*` ausentes del toolset | La sesión de opencode arrancó con el MCP en `failed` | Reiniciar opencode |
 | `ask_gemini` devuelve la respuesta anterior | Race de `waitForResponse` (bug n.º 6) | Reintentar o leer el hilo con `read_thread` |
 
+## Modo estructurado
+
+`ask_gemini` conserva el modo texto para conversación, diseño y debugging. Para respuestas que otra herramienta deba consumir, usa `ask_gemini_json`:
+
+```json
+{
+  "prompt": "Revisa este diseño y enumera sus riesgos",
+  "schema": {
+    "type": "object",
+    "required": ["risks", "recommendation"]
+  }
+}
+```
+
+La herramienta solicita un bloque `<bridge_payload>` versionado, con `requestId` para correlación, y devuelve JSON. Valida el envelope y los campos `required`/tipos básicos declarados en `schema`. Si Gemini responde con prosa, markdown o JSON inválido, devuelve `status: "partial"`, el texto crudo y un código de diagnóstico en lugar de romper el flujo. No intenta reparar JSON corrupto automáticamente.
+
 ## Diagnóstico seguro del DOM
 
 Usa `debug_dom` antes de cambiar selectores. Devuelve únicamente la ruta, título, conteos de selectores y nombres accesibles de botones. No devuelve HTML completo, cookies, tokens ni el contenido de la conversación.
