@@ -130,40 +130,43 @@ function waitForResponse(previousResponses = new Set()) {
 }
 
 function readThread() {
-    const turns = [];
-    const containers = document.querySelectorAll(
-        ".conversation-container, [data-test-id='conversation-turn'], [data-message-id]"
-    );
-
-    if (containers.length > 0) {
-        for (const container of containers) {
-            const query = container.querySelector(
-                ".user-query, [data-test-id='user-query'], [aria-label*='Copy prompt' i]"
-            );
-            if (query && query.innerText.trim()) {
-                turns.push({ role: "user", text: query.innerText.trim() });
-            }
-            const response =
-                container.querySelector(
-                    ".model-response-text, model-response, message-content, [data-test-id='model-response'], .response-content"
-                );
-            if (response && response.innerText.trim()) {
-                turns.push({ role: "model", text: response.innerText.trim() });
-            }
+    const entries = [];
+    const add = (node, role, text) => {
+        const value = (text || "").trim();
+        const duplicate = entries.some((entry) => {
+            if (entry.role !== role) return false;
+            return entry.node === node || entry.node.contains(node) || node.contains(entry.node);
+        });
+        if (value && !duplicate) {
+            entries.push({ node, role, text: value });
         }
-    } else {
-        const nodes = document.querySelectorAll(
-            ".user-query, [data-test-id='user-query'], .model-response-text, model-response, message-content, [data-test-id='model-response'], .response-content"
-        );
-        for (const node of nodes) {
-            turns.push({
-                role: node.matches(".user-query, [data-test-id='user-query']") ? "user" : "model",
-                text: node.innerText.trim(),
-            });
-        }
-    }
+    };
+    const cleanText = (node) => {
+        const clone = node.cloneNode(true);
+        clone.querySelectorAll("button, [aria-label], [role='button'], svg, model-response, message-content, [data-test-id='model-response'], .model-response-text, .response-content").forEach((el) => el.remove());
+        return (clone.innerText || clone.textContent || "")
+            .replace(/You said|Gemini said/gi, "")
+            .replace(/\s+/g, " ")
+            .trim();
+    };
 
-    return turns;
+    document.querySelectorAll("[aria-label*='Copy prompt' i]").forEach((marker) => {
+        const container = marker.closest(
+            "[data-message-id], [data-test-id='conversation-turn'], .conversation-container, [role='article'], [role='listitem']"
+        ) || marker.parentElement;
+        if (container) add(container, "user", cleanText(container));
+    });
+
+    document.querySelectorAll(
+        ".user-query, [data-test-id='user-query'], .model-response-text, model-response, message-content, [data-test-id='model-response'], .response-content"
+    ).forEach((node) => {
+        const role = node.matches(".user-query, [data-test-id='user-query']") ? "user" : "model";
+        add(node, role, cleanText(node));
+    });
+
+    return entries
+        .sort((a, b) => a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
+        .map(({ role, text }) => ({ role, text }));
 }
 
 function startNewChat() {
