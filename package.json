@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check": "node --check server.js && node --check extension/background.js && node --check extension/content.js",
+    "start": "node server.js",
+    "test": "npm run check"
   },
   "keywords": [],
   "author": "",

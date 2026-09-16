@@ -31,10 +31,10 @@ GitNexus modela correctamente los flujos internos de `content.js`, pero no puede
 | Fase | Nombre | Resultado | Estado |
 |---|---|---|---|
 | 0 | Línea base y observabilidad | Estado reproducible y diagnóstico del DOM | En progreso |
-| 1 | DOM y extracción | Lectura fiable de entrada, respuestas e hilo | Pendiente |
+| 1 | DOM y extracción | Lectura fiable de entrada, respuestas e hilo | En progreso |
 | 2 | Adjuntos | Fuera de alcance por seguridad y fragilidad DOM | No se implementará |
-| 3 | Puente y concurrencia | Comunicación resistente y acciones serializadas | Pendiente |
-| 4 | Pruebas | Smoke tests, pruebas de regresión y recuperación | Pendiente |
+| 3 | Puente y concurrencia | Comunicación resistente y acciones serializadas | En progreso |
+| 4 | Pruebas | Smoke tests, pruebas de regresión y recuperación | En progreso |
 | 5 | Cierre y mantenimiento | Documentación, release y proceso ante cambios de Gemini | Pendiente |
 
 Cada fase debe terminar con su criterio de salida antes de iniciar la siguiente. Los cambios que afecten funciones o métodos requieren primero un análisis `gitnexus_impact`; antes de committear se debe ejecutar `gitnexus_detect_changes`.
@@ -141,7 +141,7 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 **Objetivo:** hacer fiable el envío de prompts y la lectura de conversaciones, incluso con respuestas progresivas.
 
 - [x] Corregir la carrera de `waitForResponse`: exigir un bloque nuevo respecto al snapshot anterior.
-- [ ] Usar una condición de finalización basada en identidad del bloque, estabilidad del texto y estado de controles.
+- [x] Usar una condición de finalización basada en identidad del bloque, estabilidad del texto y estado del control Stop.
 - [x] Actualizar `readThread` para detectar roles mediante marcadores semánticos y conservar el orden del DOM.
 - [x] Ampliar los selectores de entrada, envío y respuesta usando una prioridad semántica.
 - [ ] Mantener el texto extraído libre de controles, marcadores de accesibilidad y elementos ocultos.
@@ -166,11 +166,11 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 
 **Objetivo:** evitar estados corruptos cuando OpenCode, Chrome o la red local cambien de estado.
 
-- [ ] Serializar acciones que usan la misma pestaña para evitar dos prompts simultáneos sobre el mismo DOM.
-- [ ] Mantener una sola conexión WebSocket activa y limpiar correctamente sockets sustituidos.
+- [x] Serializar acciones que usan la misma pestaña para evitar dos prompts simultáneos sobre el mismo DOM.
+- [x] Mantener una sola conexión WebSocket activa y limpiar correctamente sockets sustituidos.
 - [ ] Validar mensajes WebSocket entrantes antes de resolver requests pendientes.
 - [ ] Conservar timeouts y errores diferenciados para servidor no escuchando, extensión desconectada, pestaña ausente y DOM incompatible.
-- [ ] Mantener el heartbeat de 20 segundos, respaldado por `chrome.alarms` para despertar el Service Worker y reconectar después de una suspensión.
+- [x] Mantener el heartbeat de 20 segundos, respaldado por `chrome.alarms` para despertar el Service Worker y reconectar después de una suspensión.
 - [ ] Declarar `minimum_chrome_version: 116` si se depende del comportamiento de WebSockets de service workers documentado por Chrome.
 - [ ] Evitar mantener el service worker vivo indefinidamente sin una necesidad comprobada.
 - [ ] Añadir micro-delays controlados entre eventos sintéticos, sin simular errores humanos ni introducir esperas arbitrarias.
@@ -183,9 +183,9 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 
 **Objetivo:** convertir el comportamiento esperado en verificaciones repetibles.
 
-- [ ] Sustituir el `npm test` placeholder por validaciones útiles.
-- [ ] Añadir `npm run check` para validar los tres archivos JavaScript.
-- [ ] Añadir `npm run start` para iniciar el servidor MCP.
+- [x] Sustituir el `npm test` placeholder por validaciones útiles.
+- [x] Añadir `npm run check` para validar los tres archivos JavaScript.
+- [x] Añadir `npm run start` para iniciar el servidor MCP.
 - [ ] Crear un smoke test con cliente MCP y una extensión WebSocket simulada.
 - [ ] Probar `bridge_status` sin Chrome.
 - [ ] Probar round-trip real con `new_chat`, `ask_gemini`, `read_thread` y memoria.
@@ -193,7 +193,7 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 - [ ] Probar dos solicitudes concurrentes y confirmar que no se mezclen.
 - [ ] Probar recarga de extensión, recarga de pestaña y reconexión del WebSocket.
 - [ ] Probar suspensión/reinicio del service worker.
-- [ ] Ejecutar `npx gitnexus analyze` después de cambios relevantes.
+- [x] Ejecutar `npx gitnexus analyze` después de cambios relevantes.
 - [ ] Ejecutar `gitnexus_detect_changes()` antes de cada commit.
 
 **Entregable:** scripts `check`, `test`, `smoke` y checklist manual de Chrome.

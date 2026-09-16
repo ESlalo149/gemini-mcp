@@ -4,7 +4,8 @@
     "version": "1.0.0",
     "description": "Conecta la pestaña de Gemini con el servidor local MCP",
     "permissions": [
-        "tabs"
+        "tabs",
+        "alarms"
     ],
     "host_permissions": [
         "https://gemini.google.com/*"

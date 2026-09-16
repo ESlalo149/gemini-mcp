@@ -98,11 +98,20 @@ function waitForResponse(previousResponses = new Set()) {
 
             if (lastResponse && (newResponses.length > 0 || previousResponses.size === 0)) {
                 const currentText = lastResponse.innerText.trim();
+                if (/something went wrong|algo salió mal|sign in|inicia sesión|quota|cuota|blocked|bloqueado/i.test(currentText)) {
+                    clearInterval(interval);
+                    resolve(`Error de Gemini: ${currentText}`);
+                    return;
+                }
+                lastResponse.scrollIntoView({ block: "end", behavior: "auto" });
 
                 // Verifica si el texto dejó de cambiar (indicador de que terminó la generación)
                 if (currentText.length > 0 && currentText === lastText) {
                     stableCount++;
-                    if (stableCount >= 5) { // ~2.5 segundos estable
+                    const stopButton = Array.from(document.querySelectorAll("button, [role='button']")).some((button) =>
+                        /stop generating|detener generación/i.test(button.getAttribute("aria-label") || button.textContent || "")
+                    );
+                    if (stableCount >= 5 && !stopButton) { // ~2.5 segundos estable
                         clearInterval(interval);
                         resolve(currentText);
                     }
