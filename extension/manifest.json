@@ -1,5 +1,6 @@
 {
     "manifest_version": 3,
+    "minimum_chrome_version": "116",
     "name": "Gemini MCP Bridge",
     "version": "1.0.0",
     "description": "Conecta la pestaña de Gemini con el servidor local MCP",

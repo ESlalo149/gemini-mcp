@@ -2,6 +2,7 @@ let socket = null;
 let pingInterval = null;
 let reconnectTimer = null;
 let actionQueue = Promise.resolve();
+const allowedActions = new Set(["ask", "read_thread", "new_chat", "get_title", "debug_dom"]);
 
 chrome.alarms.create("gemini-mcp-reconnect", { periodInMinutes: 0.5 });
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -30,7 +31,7 @@ function connect() {
             if (data.type === "pong") return; // Respuesta al ping
 
             const { id, action, payload = {} } = data;
-            if (!id || !action) return;
+            if (typeof id !== "string" || !allowedActions.has(action) || !payload || typeof payload !== "object") return;
 
             const respond = (ok, result) => {
                 if (socket && socket.readyState === WebSocket.OPEN) {

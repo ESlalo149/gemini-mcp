@@ -65,7 +65,7 @@ wss.on("connection", (ws) => {
             }
 
             // Resolver la respuesta que esperaba OpenCode
-            if (data.id && pendingRequests.has(data.id)) {
+            if (typeof data.id === "string" && typeof data.ok === "boolean" && pendingRequests.has(data.id)) {
                 const { resolve } = pendingRequests.get(data.id);
                 pendingRequests.delete(data.id);
                 resolve(data);

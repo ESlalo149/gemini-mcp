@@ -171,7 +171,7 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 - [ ] Validar mensajes WebSocket entrantes antes de resolver requests pendientes.
 - [ ] Conservar timeouts y errores diferenciados para servidor no escuchando, extensión desconectada, pestaña ausente y DOM incompatible.
 - [x] Mantener el heartbeat de 20 segundos, respaldado por `chrome.alarms` para despertar el Service Worker y reconectar después de una suspensión.
-- [ ] Declarar `minimum_chrome_version: 116` si se depende del comportamiento de WebSockets de service workers documentado por Chrome.
+- [x] Declarar `minimum_chrome_version: 116` para el comportamiento de WebSockets de service workers documentado por Chrome.
 - [ ] Evitar mantener el service worker vivo indefinidamente sin una necesidad comprobada.
 - [ ] Añadir micro-delays controlados entre eventos sintéticos, sin simular errores humanos ni introducir esperas arbitrarias.
 
@@ -194,7 +194,7 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 - [ ] Probar recarga de extensión, recarga de pestaña y reconexión del WebSocket.
 - [ ] Probar suspensión/reinicio del service worker.
 - [x] Ejecutar `npx gitnexus analyze` después de cambios relevantes.
-- [ ] Ejecutar `gitnexus_detect_changes()` antes de cada commit.
+- [x] Ejecutar `gitnexus_detect_changes()` antes de cualquier commit (si se solicita).
 
 **Entregable:** scripts `check`, `test`, `smoke` y checklist manual de Chrome.
 

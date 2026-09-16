@@ -79,6 +79,7 @@ npm install
 | `get_title` | — | Devuelve el título de la conversación | ✅ |
 | `send_file` | — | No disponible: subida local fuera de alcance | No implementado |
 | `bridge_status` | — | Estado del puente: `listening`, `extensionConnected`, `bindRetries`, `lastBindError` | ✅ |
+| `debug_dom` | — | Metadatos sanitizados del DOM para diagnóstico | ✅ |
 
 > ⚠️ **Nota `send_file`**: el nombre del parámetro que el **servidor** anuncia es `path` (verificado con un cliente MCP real). opencode puede exponer la tool como `filePath` en su esquema de la sesión. Llamar con `filePath` produce un error de validación `-32602`; llamar con `path` sí llega al servidor. (Bug n.º 3)
 
