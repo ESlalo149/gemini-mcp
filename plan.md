@@ -125,7 +125,8 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 
 **Objetivo:** saber exactamente qué DOM tiene la pestaña real y poder diagnosticar fallos sin adivinar selectores.
 
-- [ ] Añadir un diagnóstico temporal o una tool `debug_dom` que devuelva conteos de selectores, nombres accesibles y bloques visibles.
+- [x] Añadir una tool `debug_dom` que devuelva conteos de selectores y nombres accesibles sanitizados.
+- [ ] Incluir un resumen del árbol de accesibilidad: `role`, nombre accesible, `aria-*` relevante y visibilidad.
 - [ ] Capturar una muestra mínima del DOM real de una conversación con un mensaje de usuario y una respuesta.
 - [ ] Capturar el DOM durante una respuesta en generación y al finalizar.
 - [ ] Capturar el DOM después de abrir el menú de adjuntos y después de seleccionar un archivo.
@@ -139,11 +140,13 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 
 **Objetivo:** hacer fiable el envío de prompts y la lectura de conversaciones, incluso con respuestas progresivas.
 
-- [ ] Corregir la carrera de `waitForResponse`: exigir un bloque nuevo o texto diferente al snapshot anterior.
+- [x] Corregir la carrera de `waitForResponse`: exigir un bloque nuevo respecto al snapshot anterior.
 - [ ] Usar una condición de finalización basada en identidad del bloque, estabilidad del texto y estado de controles.
-- [ ] Actualizar `readThread` para detectar roles mediante marcadores semánticos y conservar el orden.
-- [ ] Ampliar los selectores de entrada, envío, respuesta y título usando una prioridad semántica.
+- [x] Actualizar `readThread` para detectar roles mediante marcadores semánticos y conservar el orden del DOM.
+- [x] Ampliar los selectores de entrada, envío y respuesta usando una prioridad semántica.
 - [ ] Mantener el texto extraído libre de controles, marcadores de accesibilidad y elementos ocultos.
+- [ ] Detectar estados de sesión expirada, cuota agotada, error de red, bloqueo de contenido y generación detenida.
+- [ ] Hacer scroll controlado al final del contenedor cuando se espera una respuesta o se lee el hilo virtualizado.
 
 **Entregable:** `ask_gemini`, `read_thread`, `new_chat` y `get_title` operando con selectores semánticos y fallbacks documentados.
 
@@ -157,6 +160,7 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 - [ ] Seleccionar `Upload files` o el equivalente localizado en la Fase 0.
 - [ ] Usar el `input[type="file"]` nativo cuando esté disponible.
 - [ ] Mantener drag-and-drop y clipboard como fallbacks explícitos.
+- [ ] Conservar `Base64 -> File -> DataTransfer` como mecanismo de inyección; el problema a resolver son los selectores y eventos de Gemini, no las rutas locales.
 - [ ] Esperar confirmación visual y lógica del adjunto antes de enviar el prompt.
 - [ ] Limpiar temporizadores, inputs temporales y estados de error después de cada intento.
 - [ ] Aceptar `path` y `filePath` si el cliente MCP vuelve a transformar el nombre del parámetro.
@@ -175,9 +179,10 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 - [ ] Mantener una sola conexión WebSocket activa y limpiar correctamente sockets sustituidos.
 - [ ] Validar mensajes WebSocket entrantes antes de resolver requests pendientes.
 - [ ] Conservar timeouts y errores diferenciados para servidor no escuchando, extensión desconectada, pestaña ausente y DOM incompatible.
-- [ ] Mantener el heartbeat de 20 segundos; evaluar `chrome.alarms` solo si las pruebas muestran que hace falta.
+- [ ] Mantener el heartbeat de 20 segundos, respaldado por `chrome.alarms` para despertar el Service Worker y reconectar después de una suspensión.
 - [ ] Declarar `minimum_chrome_version: 116` si se depende del comportamiento de WebSockets de service workers documentado por Chrome.
 - [ ] Evitar mantener el service worker vivo indefinidamente sin una necesidad comprobada.
+- [ ] Añadir micro-delays controlados entre eventos sintéticos, sin simular errores humanos ni introducir esperas arbitrarias.
 
 **Entregable:** cola de acciones, reconexión controlada, timeouts y estados de salud observables.
 

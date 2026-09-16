@@ -20,6 +20,8 @@ async function handleAction(action, payload) {
             return startNewChat();
         case "get_title":
             return getTitle();
+        case "debug_dom":
+            return debugDom();
         default:
             throw new Error("Acción desconocida: " + action);
     }
@@ -30,7 +32,15 @@ async function handleAction(action, payload) {
 // ---------------------------------------------------------------------------
 
 function getInputElement() {
-    return document.querySelector('div[contenteditable="true"]') || document.querySelector("textarea");
+    const selectors = [
+        '[aria-label="Enter a prompt for Gemini"]',
+        '[aria-label*="prompt" i][contenteditable="true"]',
+        '[contenteditable="true"][role="textbox"]',
+        'div[contenteditable="true"]',
+        "rich-textarea",
+        "textarea",
+    ];
+    return selectors.map((selector) => document.querySelector(selector)).find(Boolean);
 }
 
 function fillPrompt(promptText) {
@@ -44,7 +54,7 @@ function fillPrompt(promptText) {
 
 function clickSend() {
     const sendBtn = document.querySelector(
-        'button[aria-label*="Enviar"], button[aria-label*="Send"], button.send-button'
+        'button[aria-label*="Enviar" i], button[aria-label*="Send" i], button[aria-label*="submit" i], button.send-button'
     );
     if (sendBtn) {
         sendBtn.click();
@@ -61,14 +71,21 @@ function clickSend() {
 // ---------------------------------------------------------------------------
 
 function ask(promptText) {
+    const previousResponses = new Set(getResponseNodes());
     fillPrompt(promptText);
     return new Promise((resolve) => setTimeout(resolve, 400)).then(() => {
         clickSend();
-        return waitForResponse();
+        return waitForResponse(previousResponses);
     });
 }
 
-function waitForResponse() {
+function getResponseNodes() {
+    return Array.from(document.querySelectorAll(
+        "model-response, .model-response-text, message-content, [data-response-id], [data-test-id='model-response'], .response-content"
+    ));
+}
+
+function waitForResponse(previousResponses = new Set()) {
     return new Promise((resolve) => {
         let lastText = "";
         let stableCount = 0;
@@ -77,12 +94,11 @@ function waitForResponse() {
         const interval = setInterval(() => {
             totalMs += 500;
 
-            const responses = document.querySelectorAll(
-                ".model-response-text, message-content, [data-test-id='model-response']"
-            );
-            const lastResponse = responses[responses.length - 1];
+            const responses = getResponseNodes();
+            const newResponses = responses.filter((response) => !previousResponses.has(response));
+            const lastResponse = newResponses[newResponses.length - 1] || responses[responses.length - 1];
 
-            if (lastResponse) {
+            if (lastResponse && (newResponses.length > 0 || previousResponses.size === 0)) {
                 const currentText = lastResponse.innerText.trim();
 
                 // Verifica si el texto dejó de cambiar (indicador de que terminó la generación)
@@ -108,25 +124,33 @@ function waitForResponse() {
 
 function readThread() {
     const turns = [];
-    const containers = document.querySelectorAll(".conversation-container");
+    const containers = document.querySelectorAll(
+        ".conversation-container, [data-test-id='conversation-turn'], [data-message-id]"
+    );
 
     if (containers.length > 0) {
         for (const container of containers) {
-            const query = container.querySelector(".user-query");
+            const query = container.querySelector(
+                ".user-query, [data-test-id='user-query'], [aria-label*='Copy prompt' i]"
+            );
             if (query && query.innerText.trim()) {
                 turns.push({ role: "user", text: query.innerText.trim() });
             }
             const response =
-                container.querySelector(".model-response-text") || container.querySelector(".model-response");
+                container.querySelector(
+                    ".model-response-text, model-response, message-content, [data-test-id='model-response'], .response-content"
+                );
             if (response && response.innerText.trim()) {
                 turns.push({ role: "model", text: response.innerText.trim() });
             }
         }
     } else {
-        const nodes = document.querySelectorAll(".user-query, .model-response-text");
+        const nodes = document.querySelectorAll(
+            ".user-query, [data-test-id='user-query'], .model-response-text, model-response, message-content, [data-test-id='model-response'], .response-content"
+        );
         for (const node of nodes) {
             turns.push({
-                role: node.matches(".user-query") ? "user" : "model",
+                role: node.matches(".user-query, [data-test-id='user-query']") ? "user" : "model",
                 text: node.innerText.trim(),
             });
         }
@@ -164,6 +188,44 @@ function getTitle() {
     }
 
     return "Untitled";
+}
+
+function debugDom() {
+    const selectorCounts = {
+        promptInputs: document.querySelectorAll(
+            '[aria-label*="prompt" i], [contenteditable="true"], [role="textbox"], textarea, rich-textarea'
+        ).length,
+        sendButtons: Array.from(document.querySelectorAll("button")).filter((button) => {
+            const label = button.getAttribute("aria-label") || button.textContent || "";
+            return /send|enviar|submit/i.test(label);
+        }).length,
+        responses: document.querySelectorAll(
+            "model-response, .model-response-text, [data-response-id], [data-test-id='model-response'], .response-content"
+        ).length,
+        userMarkers: Array.from(document.querySelectorAll("button")).filter((button) => {
+            const label = button.getAttribute("aria-label") || button.textContent || "";
+            return /copy prompt|copiar (el )?prompt/i.test(label);
+        }).length,
+        attachmentInputs: document.querySelectorAll('input[type="file"]').length,
+        attachmentIndicators: document.querySelectorAll(
+            '[data-test-id*="upload" i], [data-test-id*="attach" i], [aria-label*="uploaded" i], .attachment-container'
+        ).length,
+    };
+
+    const accessibleButtons = Array.from(document.querySelectorAll("button"))
+        .map((button) => ({
+            label: (button.getAttribute("aria-label") || button.textContent || "").trim().replace(/\s+/g, " "),
+            disabled: button.disabled || button.getAttribute("aria-disabled") === "true",
+        }))
+        .filter((button) => button.label)
+        .slice(-30);
+
+    return {
+        urlPath: location.pathname,
+        title: document.title,
+        selectorCounts,
+        accessibleButtons,
+    };
 }
 
 // ---------------------------------------------------------------------------

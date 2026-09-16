@@ -208,6 +208,14 @@ server.tool("get_title", "Devuelve el título de la conversación actual de Gemi
     }
 });
 
+server.tool("debug_dom", "Devuelve metadatos sanitizados del DOM de Gemini para diagnosticar selectores, sin incluir el contenido de la conversación.", async () => {
+    try {
+        return describeResult(await requestExtension("debug_dom"));
+    } catch (error) {
+        return { content: [{ type: "text", text: `Error: ${error.message}` }] };
+    }
+});
+
 server.tool(
     "send_file",
     "Envía un archivo local como adjunto a Gemini junto con un prompt, y devuelve la respuesta.",
