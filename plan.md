@@ -12,6 +12,63 @@ Documento vivo para llevar el proyecto desde una prueba funcional hasta un puent
 - GitNexus actualizado: `144 nodes`, `179 edges`, `7 clusters`, `5 flows`.
 - Primer commit publicado: `19c79aa`.
 
+## Plan activo de cierre
+
+El puente ya tiene un flujo funcional real. Este plan reemplaza la lista extensa de investigación inicial por cuatro líneas de trabajo concretas. Los adjuntos permanecen fuera de alcance.
+
+### 1. Robustez del DOM
+
+- [x] Normalizar texto extraído para eliminar controles, etiquetas accesibles, elementos ocultos y duplicación de nodos anidados.
+- [ ] Detectar errores visibles de sesión, cuota, red, contenido bloqueado y generación detenida, devolviendo mensajes accionables.
+- [ ] Confirmar scroll controlado al último bloque antes de leer o esperar una respuesta.
+- [ ] Registrar en la matriz de selectores únicamente los selectores actualmente usados, su fallback, evidencia y fecha.
+
+**Salida:** `ask_gemini` y `read_thread` devuelven contenido limpio y fallan de forma explicable ante cambios del DOM.
+
+### 2. Puente y ciclo de vida de Chrome
+
+- [x] Serializar acciones por pestaña.
+- [x] Mantener una única conexión WebSocket y reconectar con heartbeat/alarm.
+- [x] Validar mensajes entrantes y limitar acciones permitidas.
+- [ ] Diferenciar timeout de servidor, extensión desconectada, pestaña ausente y DOM incompatible.
+- [ ] Revisar el heartbeat para no mantener el Service Worker activo más tiempo del necesario.
+- [ ] Añadir solo micro-delays necesarios entre eventos sintéticos.
+
+**Salida:** las solicitudes concurrentes no mezclan respuestas y el puente se recupera de reinicios sin estado corrupto.
+
+### 3. Pruebas repetibles
+
+- [x] Validar sintaxis y formato (`npm test`, `git diff --check`).
+- [x] Smoke test local de WebSocket y heartbeat (`npm run smoke`).
+- [ ] Extender smoke test con `bridge_status` sin extensión y mensajes inválidos.
+- [x] Validar round-trip real con `new_chat`, `ask_gemini`, `read_thread` y memoria.
+- [x] Validar dos solicitudes concurrentes sin mezclar respuestas.
+- [ ] Ejecutar 20 prompts consecutivos sin respuesta obsoleta.
+- [x] Validar recuperación tras reinicio de extensión/pestaña/WebSocket.
+- [ ] Validar suspensión y reactivación del Service Worker.
+
+**Salida:** todas las pruebas automatizadas pasan y el checklist manual de Chrome queda registrado.
+
+### 4. Documentación operativa
+
+- [ ] Actualizar la tabla de bugs para reflejar únicamente problemas abiertos.
+- [ ] Documentar instalación, recarga de extensión y procedimiento seguro de diagnóstico DOM.
+- [ ] Documentar límites: cambios de UI de Google, login, rate limits, captcha, privacidad y términos de uso.
+- [ ] Registrar cada cambio futuro del DOM con síntoma, selector anterior, selector nuevo y prueba.
+- [x] Excluir y documentar la superficie de archivos locales.
+
+**Salida:** otra persona puede instalar, probar y diagnosticar el puente sin conocimiento informal.
+
+### Orden de ejecución
+
+1. Cerrar normalización y errores del DOM.
+2. Cerrar timeouts, ciclo de vida y micro-delays del puente.
+3. Completar smoke tests y pruebas manuales de recuperación.
+4. Sincronizar README, matriz de selectores y registro de cambios.
+5. Ejecutar `npx gitnexus analyze` y `gitnexus_detect_changes` como verificación final.
+
+La investigación histórica y los patrones de implementaciones externas que aparecen más abajo se conservan como referencia, no como tareas pendientes obligatorias.
+
 ## Arquitectura conocida
 
 ```text
@@ -119,7 +176,7 @@ Adjuntos:
 
 Estos patrones no son contratos de Google. Deben verificarse contra la pestaña real antes de convertirlos en lógica principal.
 
-## Fases de ejecución
+## Referencia histórica de fases
 
 ### Fase 0: línea base y observabilidad
 
@@ -252,7 +309,7 @@ Si prefieres no copiar HTML, envía únicamente una lista de:
 - clases relevantes;
 - texto visible de botones y menús.
 
-## Criterio de finalización
+## Criterio histórico de finalización
 
 Consideraremos el puente listo cuando:
 

@@ -144,10 +144,14 @@ function readThread() {
     const cleanText = (node) => {
         const clone = node.cloneNode(true);
         clone.querySelectorAll("button, [aria-label], [role='button'], svg, model-response, message-content, [data-test-id='model-response'], .model-response-text, .response-content").forEach((el) => el.remove());
-        return (clone.innerText || clone.textContent || "")
+        let value = (clone.innerText || clone.textContent || "")
             .replace(/You said|Gemini said/gi, "")
             .replace(/\s+/g, " ")
             .trim();
+        // Gemini can render the same prompt in both the visible body and its editor copy.
+        const repeated = value.match(/^(.+?)\s+\1$/);
+        if (repeated) value = repeated[1].trim();
+        return value;
     };
 
     document.querySelectorAll("[aria-label*='Copy prompt' i]").forEach((marker) => {

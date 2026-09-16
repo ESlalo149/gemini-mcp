@@ -111,8 +111,8 @@ get_title                → título del hilo
 | 2 | Las tools de `gemini-browser` no aparecían en la sesión de opencode | La sesión arrancó cuando el MCP estaba en estado `failed`; el registro quedó sin ejecutarse | Reiniciar opencode con el puente sano desde el arranque | ✅ Resuelto |
 | 3 | `send_file` falla con `-32602: Invalid arguments` | Desajuste de nombre de parámetro: el servidor anuncia `path`, opencode expone `filePath` | Usar `path` en la llamada (workaround) | ⚠️ Workaround |
 | 4 | `send_file` no deja el adjunto en la UI de Gemini: tras 15 s aborta con "El adjunto no apareció" | `attachFile` (drag&drop + input file falso) no es aceptado por Gemini, o los selectores de `waitForAttachment` (`[data-test-id="uploaded-file"]`, `.attachment-container`) no coinciden con el DOM actual | Sin arreglo (requiere auditoría del DOM real con `chrome-devtools`, puerto `9222`) | ❌ Abierto |
-| 5 | `read_thread` omite los turnos **usuario**; solo devuelve turnos de modelo | Los selectores `.user-query` / `.conversation-container` no matchean el DOM actual de Gemini | Sin arreglo | ⚠️ Abierto |
-| 6 | `ask_gemini` a veces devuelve una **respuesta obsoleta** (la anterior) al lanzar una consulta nueva | Race en `waitForResponse` (`content.js`): toma el último `.model-response-text`; justo tras enviar, la respuesta vieja sigue visible e "invariable" ~2.5 s → el detector de "texto estable" resuelve con el texto anterior | Sin arreglo. La respuesta nueva sí queda en el hilo (visible con `read_thread`) | ❌ Abierto |
+| 5 | `read_thread` omitía los turnos **usuario** | Los selectores antiguos no coincidían con el DOM actual de Gemini | Marcador `Copy prompt`, limpieza semántica y orden por posición DOM | ✅ Resuelto |
+| 6 | `ask_gemini` podía devolver una **respuesta obsoleta** | La respuesta anterior seguía visible durante la generación nueva | Snapshot de nodos, bloque nuevo, estabilidad y estado del botón Stop | ✅ Resuelto |
 
 ---
 
