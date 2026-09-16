@@ -126,6 +126,39 @@ get_title                → título del hilo
 | Tools `gemini-browser.*` ausentes del toolset | La sesión de opencode arrancó con el MCP en `failed` | Reiniciar opencode |
 | `ask_gemini` devuelve la respuesta anterior | Race de `waitForResponse` (bug n.º 6) | Reintentar o leer el hilo con `read_thread` |
 
+## Diagnóstico seguro del DOM
+
+Usa `debug_dom` antes de cambiar selectores. Devuelve únicamente la ruta, título, conteos de selectores y nombres accesibles de botones. No devuelve HTML completo, cookies, tokens ni el contenido de la conversación.
+
+1. Reproduce el fallo en una pestaña de Gemini.
+2. Ejecuta `debug_dom` y guarda la salida con fecha.
+3. Compara los conteos y nombres accesibles con la matriz de selectores.
+4. Si necesitas inspección manual, copia solo etiquetas, `role`, `aria-*`, `data-*` y clases relevantes; elimina nombres, URLs, IDs, prompts y tokens.
+5. Prueba primero un fallback semántico y valida con `ask_gemini`, `read_thread` y `debug_dom`.
+
+### Matriz de selectores
+
+| Elemento | Selector principal | Fallback | Evidencia | Última verificación |
+|---|---|---|---|---|
+| Entrada | `[aria-label="Enter a prompt for Gemini"]` | `[contenteditable="true"][role="textbox"]`, `rich-textarea`, `textarea` | `debug_dom` y round-trip real | 2026-09-16 |
+| Envío | Botón `Send`/`Enviar` | Evento `Enter` sobre la entrada | round-trip real; Gemini mostró 0 botones Send | 2026-09-16 |
+| Respuesta | `model-response`, `.model-response-text`, `message-content` | `[data-response-id]`, `.response-content` | `debug_dom` y 20 prompts | 2026-09-16 |
+| Usuario | Marcador `Copy prompt` | `[data-test-id='user-query']`, `.user-query` | `read_thread` real | 2026-09-16 |
+| Adjuntos | No usado | No usado | fuera de alcance | 2026-09-16 |
+
+## Límites y mantenimiento
+
+- La interfaz y el DOM de Google Gemini pueden cambiar sin aviso; los selectores no son un contrato público.
+- La pestaña debe tener una sesión válida de Gemini; login, captcha, cuota agotada y rate limits dependen de la cuenta.
+- El puente usa la sesión visible del usuario y no debe utilizarse para extraer contenido privado innecesario.
+- El WebSocket solo enlaza a `127.0.0.1`; no expone el puente a la red local.
+- El proyecto no lee rutas locales ni transmite archivos.
+- El uso debe respetar los términos de Google, las políticas de la cuenta y las condiciones de opencode.
+
+### Registro de cambios del DOM
+
+Para cada cambio registrar: fecha, síntoma, selector anterior, selector nuevo o fallback, salida de `debug_dom`, prueba ejecutada y resultado. No adjuntar HTML completo ni datos privados.
+
 ---
 
 ## Endurecimiento aplicado (`server.js`)
