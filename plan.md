@@ -32,7 +32,7 @@ GitNexus modela correctamente los flujos internos de `content.js`, pero no puede
 |---|---|---|---|
 | 0 | Línea base y observabilidad | Estado reproducible y diagnóstico del DOM | En progreso |
 | 1 | DOM y extracción | Lectura fiable de entrada, respuestas e hilo | Pendiente |
-| 2 | Adjuntos | Subida fiable de texto, imágenes y archivos permitidos | Pendiente |
+| 2 | Adjuntos | Fuera de alcance por seguridad y fragilidad DOM | No se implementará |
 | 3 | Puente y concurrencia | Comunicación resistente y acciones serializadas | Pendiente |
 | 4 | Pruebas | Smoke tests, pruebas de regresión y recuperación | Pendiente |
 | 5 | Cierre y mantenimiento | Documentación, release y proceso ante cambios de Gemini | Pendiente |
@@ -152,24 +152,15 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 
 **Criterio de salida:** 20 prompts consecutivos devuelven la respuesta nueva y `read_thread` conserva usuario y modelo en orden.
 
-### Fase 2: adjuntos
+### Fase 2: adjuntos (fuera de alcance)
 
-**Objetivo:** implementar y comprobar una ruta de upload compatible con el DOM real de Gemini.
+**Objetivo:** no implementar subida de archivos locales desde el MCP.
 
-- [ ] Abrir el menú de upload mediante el control accesible real.
-- [ ] Seleccionar `Upload files` o el equivalente localizado en la Fase 0.
-- [ ] Usar el `input[type="file"]` nativo cuando esté disponible.
-- [ ] Mantener drag-and-drop y clipboard como fallbacks explícitos.
-- [ ] Conservar `Base64 -> File -> DataTransfer` como mecanismo de inyección; el problema a resolver son los selectores y eventos de Gemini, no las rutas locales.
-- [ ] Esperar confirmación visual y lógica del adjunto antes de enviar el prompt.
-- [ ] Limpiar temporizadores, inputs temporales y estados de error después de cada intento.
-- [ ] Aceptar `path` y `filePath` si el cliente MCP vuelve a transformar el nombre del parámetro.
-- [ ] Validar que `send_file` nunca envíe archivos inexistentes, directorios o archivos mayores a 10 MB.
-- [ ] Probar archivos de texto, JSON, imagen, archivo inexistente y archivo sobre el límite.
+- [x] Excluir `send_file`, `attach_ask` y la lectura de rutas locales del contrato MCP.
 
-**Entregable:** `send_file` funcional con errores accionables y sin falsos positivos.
+**Entregable:** ningún tool del MCP lee ni transmite archivos locales.
 
-**Criterio de salida:** texto e imagen pequeños se adjuntan y producen respuesta; los casos inválidos fallan rápidamente con el motivo correcto.
+**Criterio de salida:** la superficie de archivos permanece eliminada y documentada.
 
 ### Fase 3: robustez del puente y concurrencia
 
@@ -198,7 +189,7 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 - [ ] Crear un smoke test con cliente MCP y una extensión WebSocket simulada.
 - [ ] Probar `bridge_status` sin Chrome.
 - [ ] Probar round-trip real con `new_chat`, `ask_gemini`, `read_thread` y memoria.
-- [ ] Probar `send_file` con `.txt`, `.json`, `.png` y un archivo mayor al límite.
+- [x] No probar upload: la funcionalidad fue retirada por decisión de seguridad.
 - [ ] Probar dos solicitudes concurrentes y confirmar que no se mezclen.
 - [ ] Probar recarga de extensión, recarga de pestaña y reconexión del WebSocket.
 - [ ] Probar suspensión/reinicio del service worker.
@@ -225,7 +216,7 @@ Estos patrones no son contratos de Google. Deben verificarse contra la pestaña 
 
 ## Información que necesito de la página
 
-Para arreglar con precisión `read_thread` y `send_file`, necesito muestras de tu DOM actual. Puedes enviarme solo fragmentos, no la página completa.
+Para arreglar con precisión `read_thread`, necesito muestras de tu DOM actual. Puedes enviarme solo fragmentos, no la página completa.
 
 ### Muestra A: entrada y botón enviar
 
@@ -268,7 +259,7 @@ Consideraremos el puente listo cuando:
 - Las seis tools respondan correctamente en una sesión real.
 - `ask_gemini` no devuelva respuestas obsoletas en 20 pruebas consecutivas.
 - `read_thread` preserve usuario y modelo en orden.
-- `send_file` funcione para texto e imagen dentro del límite.
+- La superficie de archivos permanezca fuera del MCP.
 - Las solicitudes concurrentes se serialicen sin mezclar respuestas.
 - El puente se recupere de recarga de pestaña, extensión y service worker.
 - El smoke test automatizado pase sin Chrome.

@@ -2,7 +2,7 @@
 
 Puente entre la **pestaña de [Gemini](https://gemini.google.com)** y **opencode**, usando una extensión de Chrome (MV3) y un servidor MCP local. Permite invocar a Gemini como *tools* desde el agente, con tu sesión autenticada y sin salir del terminal.
 
-> Estado actual: **operativo para 5 de 6 tools** y con `send_file` roto (ver [Bitácora de bugs](#bitacora-de-bugs-incidentes) y [Pendientes](#pendientes--roadmap)).
+> Estado actual: **operativo para las tools de conversación y diagnóstico**. La subida de archivos locales está deliberadamente fuera de alcance.
 
 ---
 
@@ -77,7 +77,7 @@ npm install
 | `read_thread` | — | Lee la conversación actual (turnos visibles) | ⚠️ solo turnos de modelo |
 | `new_chat` | — | Inicia una conversación nueva | ✅ |
 | `get_title` | — | Devuelve el título de la conversación | ✅ |
-| `send_file` | `path` (+ `prompt`) | Adjunta un archivo local y pregunta | ❌ roto |
+| `send_file` | — | No disponible: subida local fuera de alcance | No implementado |
 | `bridge_status` | — | Estado del puente: `listening`, `extensionConnected`, `bindRetries`, `lastBindError` | ✅ |
 
 > ⚠️ **Nota `send_file`**: el nombre del parámetro que el **servidor** anuncia es `path` (verificado con un cliente MCP real). opencode puede exponer la tool como `filePath` en su esquema de la sesión. Llamar con `filePath` produce un error de validación `-32602`; llamar con `path` sí llega al servidor. (Bug n.º 3)
@@ -152,10 +152,9 @@ Como ejemplo de uso agéntico, se validó un ciclo completo "detective + desplie
 
 ## Pendientes / roadmap
 
-1. **`send_file`** — auditar el DOM real de Gemini (relanzar Chrome con `--remote-debugging-port=9222` y usar `chrome-devtools`) antes de reescribir `attachFile` / `waitForAttachment`.
-2. **`waitForResponse` (race)** — tras `clickSend`, guardar el último `.model-response-text` conocido y exigir un elemento/texto **distinto** antes de considerar "estable".
-3. **`read_thread`** — actualizar selectores para capturar turnos de usuario acordes al DOM actual.
-4. Estrategia de adjuntado robusta (input file nativo, evento `paste`, selectores ampliados).
+1. **`waitForResponse`** — combinar bloque nuevo, estabilidad y estado de controles.
+2. **`read_thread`** — validar turnos de usuario y modelo con una conversación real.
+3. Robustez del puente, concurrencia y pruebas automatizadas.
 
 ---
 

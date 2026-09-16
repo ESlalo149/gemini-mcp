@@ -2,13 +2,10 @@ const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio.js");
 const { WebSocketServer } = require("ws");
 const { z } = require("zod");
-const fs = require("fs/promises");
-const path = require("path");
 const http = require("http");
 
 const WSS_PORT = Number(process.env.GEMINI_WSS_PORT) || 8765;
 const REQUEST_TIMEOUT = 120000;
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 const BIND_RETRY_MS = 2000;
 const BIND_MAX_RETRIES = 60;
 
@@ -146,29 +143,6 @@ function describeResult(message) {
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
 }
 
-const MIME_BY_EXT = {
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".webp": "image/webp",
-    ".svg": "image/svg+xml",
-    ".pdf": "application/pdf",
-    ".txt": "text/plain",
-    ".md": "text/markdown",
-    ".csv": "text/csv",
-    ".json": "application/json",
-    ".py": "text/x-python",
-    ".js": "text/javascript",
-    ".ts": "text/typescript",
-    ".html": "text/html",
-    ".css": "text/css",
-};
-
-function mimeFor(filePath) {
-    return MIME_BY_EXT[path.extname(filePath).toLowerCase()] || "application/octet-stream";
-}
-
 server.tool(
     "ask_gemini",
     "Envía una consulta a la pestaña de Gemini y devuelve la respuesta generada.",
@@ -215,40 +189,6 @@ server.tool("debug_dom", "Devuelve metadatos sanitizados del DOM de Gemini para 
         return { content: [{ type: "text", text: `Error: ${error.message}` }] };
     }
 });
-
-server.tool(
-    "send_file",
-    "Envía un archivo local como adjunto a Gemini junto con un prompt, y devuelve la respuesta.",
-    {
-        prompt: z.string().describe("La pregunta o texto para Gemini"),
-        path: z.string().describe("Ruta absoluta del archivo local a adjuntar"),
-    },
-    async ({ prompt, path: filePath }) => {
-        try {
-            let stat;
-            try {
-                stat = await fs.stat(filePath);
-            } catch {
-                return { content: [{ type: "text", text: `Error: No se encontró el archivo: ${filePath}` }] };
-            }
-            if (!stat.isFile()) {
-                return { content: [{ type: "text", text: "Error: La ruta no es un archivo." }] };
-            }
-            if (stat.size > MAX_ATTACHMENT_BYTES) {
-                return { content: [{ type: "text", text: "Error: El archivo excede el límite de 10 MB." }] };
-            }
-            const data = await fs.readFile(filePath);
-            const file = {
-                filename: path.basename(filePath),
-                mime: mimeFor(filePath),
-                data: data.toString("base64"),
-            };
-            return describeResult(await requestExtension("attach_ask", { prompt, file }));
-        } catch (error) {
-            return { content: [{ type: "text", text: `Error: ${error.message}` }] };
-        }
-    }
-);
 
 server.tool("bridge_status", "Reporta el estado del puente: si el WebSocket está escuchando, si la extensión está conectada y el puerto.", async () => {
     const status = {

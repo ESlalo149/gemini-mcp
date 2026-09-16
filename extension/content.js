@@ -12,8 +12,6 @@ async function handleAction(action, payload) {
     switch (action) {
         case "ask":
             return ask(payload.prompt);
-        case "attach_ask":
-            return attachAndAsk(payload.prompt, payload.file);
         case "read_thread":
             return readThread();
         case "new_chat":
@@ -226,67 +224,4 @@ function debugDom() {
         selectorCounts,
         accessibleButtons,
     };
-}
-
-// ---------------------------------------------------------------------------
-// Adjuntos
-// ---------------------------------------------------------------------------
-
-function base64ToFile(file) {
-    const binary = atob(file.data);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-    return new File([bytes], file.filename, { type: file.mime || "application/octet-stream" });
-}
-
-function attachFile(file) {
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(base64ToFile(file));
-
-    const inputArea = document.querySelector(".initial-input-area") || document.body;
-
-    // Opción 1: simular drag & drop sobre el área de entrada (Gemini lo soporta).
-    for (const type of ["dragover", "drop"]) {
-        inputArea.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer }));
-    }
-
-    // Opción 2: inyectar un input file temporal y emitir change.
-    let input = document.querySelector('input[type="file"]');
-    if (!input) {
-        input = document.createElement("input");
-        input.type = "file";
-        input.style.position = "fixed";
-        input.style.left = "-9999px";
-        input.style.opacity = "0";
-        document.body.appendChild(input);
-    }
-    input.files = dataTransfer.files;
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-}
-
-function waitForAttachment(maxMs) {
-    const startTime = Date.now();
-    return new Promise((resolve, reject) => {
-        const interval = setInterval(() => {
-            const indicators = document.querySelectorAll(
-                '[data-test-id="uploaded-file"], [data-test-id="uploaded-img"], .attachment-container'
-            );
-            if (indicators.length > 0) {
-                clearInterval(interval);
-                resolve();
-            } else if (Date.now() - startTime > maxMs) {
-                clearInterval(interval);
-                reject(new Error("El adjunto no apareció en la pestaña de Gemini."));
-            }
-        }, 500);
-    });
-}
-
-async function attachAndAsk(promptText, file) {
-    if (!file || !file.data) throw new Error("No se recibió el archivo.");
-    attachFile(file);
-    await waitForAttachment(15000);
-    return ask(promptText);
 }
