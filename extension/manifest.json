@@ -1,0 +1,26 @@
+{
+    "manifest_version": 3,
+    "name": "Gemini MCP Bridge",
+    "version": "1.0.0",
+    "description": "Conecta la pestaña de Gemini con el servidor local MCP",
+    "permissions": [
+        "tabs"
+    ],
+    "host_permissions": [
+        "https://gemini.google.com/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://gemini.google.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ]
+}
